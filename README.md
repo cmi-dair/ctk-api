@@ -1,59 +1,18 @@
-# CMI-DAIR Template Python Repository
+# Clinician Toolkit Frontend
 
-This is a template repository. Below is a checklist of things you should do to use it:
+This repository contains the API code for the clinician toolkit. It is a Python3.11 FastAPI application. It is deployed as a Docker container.
 
-- [x] Run `setup_template.py` to set up the repository.
-- [ ] Rewrite this `README` file.
-- [ ] Update the pre-commit versions in `.pre-commit-config.yaml` and install the `pre-commit` hooks..
-- [x] Update the `LICENSE` file to your desired license and set the year.
-- [ ] Update the supported versions in `SECURITY.md` or, if not relevant, delete this file.
-- [ ] Remove the placeholder src and test files, these are there merely to show how the CI works.
-- [ ] Grant third-party app permissions (e.g. Codecov) [here](https://github.com/organizations/cmi-dair/settings/installations), if necessary.
-- [ ] Either generate a `CODECOV_TOKEN` secret [here](https://github.com/cmi-dair/flowdump/blob/main/.github/workflows/python_tests.yaml) (if its a private repository) or remove the line `token: ${{ secrets.CODECOV_TOKEN }}`
-- [ ] API docs website: After the first successful build, go to the `Settings` tab of your repository, scroll down to the `GitHub Pages` section, and select `gh-pages` as the source. This will generate a link to your API docs.
-- [ ] Update stability badge in `README.md` to reflect the current state of the project. A list of stability badges to copy can be found [here](https://github.com/orangemug/stability-badges). The [node documentation](https://nodejs.org/docs/latest-v20.x/api/documentation.html#documentation_stability_index) can be used as a reference for the stability levels.
+## Getting Started
 
-# Project name
+To get started, clone this repository and run `poetry install` to install the dependencies. Then, run `poetry run uvicorn ctk_api.main:app --reload --host 0.0.0.0 --port 8000 --app-dir src` to start the application. Alternatively, you can run the API with the Docker image by first building the image with `docker build -t ctk-api .` and then running the image with `docker run -p 8000:8000 ctk-api`.
 
-[![Build](https://github.com/cmi-dair/ctk-api/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/cmi-dair/ctk-api/actions/workflows/test.yaml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/cmi-dair/ctk-api/branch/main/graph/badge.svg?token=22HWWFWPW5)](https://codecov.io/gh/cmi-dair/ctk-api)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
-[![L-GPL License](https://img.shields.io/badge/license-L--GPL-blue.svg)](https://github.com/cmi-dair/ctk-api/blob/main/LICENSE)
-[![pages](https://img.shields.io/badge/api-docs-blue)](https://cmi-dair.github.io/ctk-api)
+## Deployment
 
-What problem does this tool solve?
+The deployment of this application is handled by the [CTK-Orchestrator repository](https://github.com/cmi-dair/ctk-orchestrator). On each push to main, this repository will be built and deployed to the Github Container Registry.
 
-## Features
+## Settings
 
-- A few
-- Cool
-- Things
+The application is configured using environment variables. The following environment variables are used:
 
-## Installation
-
-Install this package via :
-
-```sh
-pip install ctk_api
-```
-
-Or get the newest development version via:
-
-```sh
-pip install git+https://github.com/cmi-dair/ctk-api
-```
-
-## Quick start
-
-Short tutorial, maybe with a
-
-```Python
-import ctk_api
-
-ctk_api.short_example()
-```
-
-## Links or References
-
-- [https://www.wikipedia.de](https://www.wikipedia.de)
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `OPENAI_CHAT_COMPLETION_MODEL`: The name of the OpenAI model to use for chat completion (default: gpt-4).
