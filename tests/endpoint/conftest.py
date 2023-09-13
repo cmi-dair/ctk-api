@@ -16,6 +16,7 @@ class Endpoints(str, enum.Enum):
     """Enum class that represents the available endpoints for the API."""
 
     ANONYMIZE_REPORT = f"{API_ROOT}/summarization/anonymize_report"
+    SUMMARIZE_REPORT = f"{API_ROOT}/summarization/summarize_report"
 
 
 @pytest.fixture

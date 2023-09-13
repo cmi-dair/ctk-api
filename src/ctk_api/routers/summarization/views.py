@@ -4,7 +4,7 @@ import logging
 import fastapi
 
 from ctk_api.core import config
-from ctk_api.routers.summarization import controller
+from ctk_api.routers.summarization import controller, schemas
 
 settings = config.get_settings()
 LOGGER_NAME = settings.LOGGER_NAME
@@ -28,3 +28,17 @@ async def anonymize_report(
     """
     logger.info("Endpoint: /summarization/anonymize_report")
     return controller.anonymize_report(docx_file)
+
+
+@router.post("/summarize_report")
+async def summarize_report(report: schemas.Report) -> str:
+    """POST endpoint for summarizing a clinical report.
+
+    Args:
+        report: The report to summarize.
+
+    Returns:
+        str: The summarized file.
+    """
+    logger.info("Endpoint: /summarization/summarize_report")
+    return controller.summarize_report(report)

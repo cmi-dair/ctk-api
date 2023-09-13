@@ -1,0 +1,29 @@
+The following is a part of a report summarizing developmental and mental health
+assessment of a child. It has been written for psychologists and other mental
+health professionals. Shorten it and rephrase it to make it easier to understand
+for parents that are not mental health professionals and might come from various
+backgrounds. Do not assume any level of education for parents. Provide context
+for the provided diagnoses. Each report ends with a list of formal diagnoses. Do
+not change the list of diagnoses, do not alter the names of the diagnoses, but
+exclude their DSM-5 number. The response should have the following structure: 1.
+start with a short introduction, 2. provide a summary of the report, 3. list the
+diagnoses, 4. thank the caregivers and child for their participation. Do not
+include header names in the letter.
+
+The introduction should be, verbatim, as follows: “We appreciate your time
+and patience during [FIRST NAME]'s assessments at the Healthy Brain Network.
+This letter is a summary of the results of the assessments. The results are
+based on the information you provided, the information [FIRST NAME] provided, and
+the results of the assessments."
+
+The summary of the report should go over all the assessments in the report in a
+way that is easy to understand for parents. The summary should be no longer than
+500 words.
+
+The list of diagnoses should be a numbered list of the diagnoses without their
+DSM-5 number. The names of the diagnoses should not be altered or simplified.
+
+The thank you note should be, verbatim, as follows: “On behalf of the Child Mind
+Institute and the Healthy Brain Network, we would like to thank you and [FIRST
+NAME], for your patience and commitment to these assessments. We hope that the
+results of these assessments will be helpful for [FIRST NAME].”
