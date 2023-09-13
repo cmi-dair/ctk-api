@@ -22,7 +22,6 @@ jobs:
           poetry install
       - name: Run tests
         id: run-tests
-        continue-on-error: true
         run: >
           poetry run pytest \
             --junitxml=pytest.xml \
@@ -41,9 +40,6 @@ jobs:
         with:
           name: pytest-junitxml
           path: pytest.xml
-      - name: Checking testing success.
-        if: steps.run-tests.outcome != 'success'
-        run: exit 1;
 
   coverage:
     runs-on: ubuntu-latest
