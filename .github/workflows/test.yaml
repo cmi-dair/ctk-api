@@ -44,10 +44,6 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: Get pytest artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: pytest-coverage
       - name: Get pytest junitxml artifacts
         uses: actions/download-artifact@v2
         with:
