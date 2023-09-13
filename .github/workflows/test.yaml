@@ -27,14 +27,7 @@ jobs:
             --junitxml=pytest.xml \
             --cov-report=term-missing:skip-covered \
             --cov-report=xml:coverage.xml \
-            --cov=src tests \
-            > ./pytest-coverage.txt;
-          cat ./pytest-coverage.txt;
-      - name: Upload pytest coverage artifacts.
-        uses: actions/upload-artifact@v2
-        with:
-          name: pytest-coverage
-          path: ./pytest-coverage.txt
+            --cov=src tests
       - name: Upload pytest junitxml artifacts.
         uses: actions/upload-artifact@v2
         with:
@@ -57,14 +50,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: pytest-junitxml
-      - name: Pytest coverage comment
-        if: github.event_name == 'pull_request'
-        uses: MishaKav/pytest-coverage-comment@main
-        with:
-          pytest-coverage-path: ./pytest-coverage.txt
-          junitxml-path: ./pytest.xml
+
       - name: Upload coverage to Codecov
-        if: success() || failure()
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -79,12 +66,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
           cache: poetry
       - run: |
-          pip install poetry
           poetry install
           poetry run mypy .
 
