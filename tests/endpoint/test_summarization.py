@@ -1,31 +1,35 @@
+"""Endpoint tests for the summarization router."""
 # pylint: disable=redefined-outer-name
 import tempfile
-from typing import Generator
+from typing import Any
 
-import docx
 import pytest
+import pytest_mock
 from fastapi import status, testclient
 
 from . import conftest
 
 
 @pytest.fixture
-def document() -> Generator[tempfile._TemporaryFileWrapper, None, None]:
-    """Generates a new Word document with a title and a paragraph, and returns
-    the path to the saved file.
-
-    Returns:
-        tempfile.NamedTemporaryFile: The saved file.
-    """
-    doc = docx.Document()
-    doc.add_heading("Title", 0)
-    doc.add_heading("clinical summary and impression", 1)
-    doc.add_paragraph("Name: Lea Avatar")
-    doc.add_paragraph("He she herself man")
-
-    with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
-        doc.save(temp_file.name)
-        yield temp_file
+def mock_openai_response() -> dict[str, Any]:
+    """Returns a mock OpenAI response."""
+    return {
+        "id": "chatcmpl-123",
+        "object": "chat.completion",
+        "created": 1677652288,
+        "model": "gpt-3.5-turbo-0613",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "\n\nHello there, how may I assist you today?",
+                },
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21},
+    }
 
 
 def test_anonymization_endpoint(
@@ -45,5 +49,22 @@ def test_anonymization_endpoint(
 
     response = client.post(endpoints.ANONYMIZE_REPORT, files=form_data)
 
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected
+
+
+def test_summarization_endpoint(
+    mocker: pytest_mock.MockFixture,
+    mock_openai_response: dict[str, Any],
+    client: testclient.TestClient,
+    endpoints: conftest.Endpoints,
+) -> None:
+    """Tests the summarization endpoint."""
+    mocker.patch("openai.ChatCompletion.create", return_value=mock_openai_response)
+    expected = mock_openai_response["choices"][0]["message"]["content"]
+
+    response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
+
+    print(response.json())
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected

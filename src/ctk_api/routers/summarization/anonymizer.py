@@ -4,7 +4,9 @@ import logging
 import re
 
 import docx
+import fastapi
 from docx.text import paragraph as docx_paragraph
+from fastapi import status
 
 from ctk_api.core import config
 
@@ -56,7 +58,9 @@ def get_patient_name(document: docx.Document) -> tuple[str, str]:
             last_name = " ".join(paragraph.text.split(" ")[2:])
             return first_name, last_name
 
-    raise ValueError("Could not find patient name.")
+    raise fastapi.HTTPException(
+        status.HTTP_400_BAD_REQUEST, detail="Patient name not found."
+    )
 
 
 def get_diagnostic_paragraphs(
@@ -154,8 +158,10 @@ def _find_and_replace(
         return r"(?<!\/)\b" + target + r"\b(?!\/)"
 
     pattern = make_regex_pattern(target)
-    text = re.sub(pattern, replacement, text)
-    if match_case:
+    if not match_case:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    else:
+        text = re.sub(pattern, replacement, text)
         capitalized_replacements = "/".join(
             [replace.capitalize() for replace in replacement.split("/")]
         )
