@@ -9,6 +9,8 @@ on:
 jobs:
   unit:
     runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: dummy_variable
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
