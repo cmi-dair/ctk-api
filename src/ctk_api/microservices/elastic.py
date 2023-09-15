@@ -40,7 +40,9 @@ class ElasticClient:
         url: pydantic.AnyHttpUrl | str = ELASTIC_URL,
         password: pydantic.SecretStr = ELASTIC_PASSWORD,
     ):
+        logger.info("Initializing Elasticsearch client.")
         self.url = str(url)
+        logger.debug("Connecting to %s.", self.url)
         self.client = elasticsearch.Elasticsearch(
             self.url,
             basic_auth=(
