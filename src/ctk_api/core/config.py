@@ -35,6 +35,9 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
     ELASTIC_URL: pydantic.AnyHttpUrl = pydantic.Field(
         "http://localhost:9200", json_schema_extra={"env": "ELASTIC_URL"}
     )
+    ELASTIC_USER: str = pydantic.Field(
+        "elastic", json_schema_extra={"env": "ELASTIC_USER"}
+    )
     ELASTIC_PASSWORD: pydantic.SecretStr = pydantic.Field(
         ..., json_schema_extra={"env": "ELASTIC_PASSWORD"}
     )

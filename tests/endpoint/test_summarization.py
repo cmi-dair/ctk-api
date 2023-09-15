@@ -10,6 +10,11 @@ from fastapi import status, testclient
 from . import conftest
 
 
+class MockElasticResponse:
+    def __init__(self):
+        self._id = "1"
+
+
 @pytest.fixture
 def mock_openai_response() -> dict[str, Any]:
     """Returns a mock OpenAI response."""
@@ -60,7 +65,19 @@ def test_summarization_endpoint(
     endpoints: conftest.Endpoints,
 ) -> None:
     """Tests the summarization endpoint."""
+    mocker.patch(
+        "ctk_api.microservices.elastic.ElasticClient.search",
+        return_value={"hits": {"total": {"value": 0}}},
+    )
+    mocker.patch(
+        "ctk_api.microservices.elastic.ElasticClient.create",
+        return_value=MockElasticResponse(),
+    )
+    mocker.patch(
+        "ctk_api.microservices.elastic.ElasticClient.update", return_value=None
+    )
     mocker.patch("openai.ChatCompletion.create", return_value=mock_openai_response)
+
     expected = mock_openai_response["choices"][0]["message"]["content"]
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})

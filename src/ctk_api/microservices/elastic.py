@@ -19,6 +19,7 @@ from ctk_api.core import config
 
 settings = config.get_settings()
 ELASTIC_URL = settings.ELASTIC_URL
+ELASTIC_USER = settings.ELASTIC_USER
 ELASTIC_PASSWORD = settings.ELASTIC_PASSWORD
 LOGGER_NAME = settings.LOGGER_NAME
 
@@ -43,7 +44,7 @@ class ElasticClient:
         self.client = elasticsearch.Elasticsearch(
             self.url,
             basic_auth=(
-                "elastic",
+                ELASTIC_USER,
                 password.get_secret_value(),  # pylint: disable=no-member
             ),
         )

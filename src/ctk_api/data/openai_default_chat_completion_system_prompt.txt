@@ -16,12 +16,12 @@ This letter is a summary of the results of the assessments. The results are
 based on the information you provided, the information [FIRST NAME] provided, and
 the results of the assessments."
 
+The list of diagnoses should be a numbered list of the diagnoses without their
+DSM-5 number. The names of the diagnoses should not be altered or simplified.
+
 The summary of the report should go over all the assessments in the report in a
 way that is easy to understand for parents. The summary should be no longer than
 500 words.
-
-The list of diagnoses should be a numbered list of the diagnoses without their
-DSM-5 number. The names of the diagnoses should not be altered or simplified.
 
 The thank you note should be, verbatim, as follows: “On behalf of the Child Mind
 Institute and the Healthy Brain Network, we would like to thank you and [FIRST
