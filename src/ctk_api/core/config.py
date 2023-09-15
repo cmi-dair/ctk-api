@@ -11,6 +11,9 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
     """Settings for the API."""
 
     LOGGER_NAME: str = pydantic.Field("Clinician Toolkit API")
+    LOGGER_VERBOSITY: int = pydantic.Field(
+        logging.DEBUG, json_schema_extra={"env": "LOGGER_VERBOSITY"}
+    )
 
     ENVIRONMENT: str = pydantic.Field(
         "development", json_schema_extra={"env": "CTK_API_ENVIRONMENT"}
@@ -27,6 +30,13 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
         / "data"
         / "openai_default_chat_completion_system_prompt.txt",
         json_schema_extra={"env": "OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE"},
+    )
+
+    ELASTIC_URL: pydantic.AnyHttpUrl = pydantic.Field(
+        "http://localhost:9200", json_schema_extra={"env": "ELASTIC_URL"}
+    )
+    ELASTIC_PASSWORD: pydantic.SecretStr = pydantic.Field(
+        ..., json_schema_extra={"env": "ELASTIC_PASSWORD"}
     )
 
     @pydantic.field_validator("ENVIRONMENT")
@@ -66,7 +76,7 @@ def initialize_logger() -> None:
     """Initializes the logger for the API."""
     settings = get_settings()
     logger = logging.getLogger(settings.LOGGER_NAME)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(settings.LOGGER_VERBOSITY)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s - %(funcName)s - %(message)s"

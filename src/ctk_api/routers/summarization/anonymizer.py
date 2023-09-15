@@ -1,5 +1,4 @@
 """This module contains the anonymization logic for clinical reports."""
-
 import logging
 import re
 
@@ -58,6 +57,7 @@ def get_patient_name(document: docx.Document) -> tuple[str, str]:
             last_name = " ".join(paragraph.text.split(" ")[2:])
             return first_name, last_name
 
+    logger.error("Patient name not found.")
     raise fastapi.HTTPException(
         status.HTTP_400_BAD_REQUEST, detail="Patient name not found."
     )
@@ -152,11 +152,21 @@ def _find_and_replace(
         text: The anonymized paragraph text.
 
     """
-    logger.debug("Finding and replacing.")
 
-    def make_regex_pattern(target: str):
+    def make_regex_pattern(target: str) -> str:
+        """Makes a regex pattern for the target. This pattern looks for complete
+        words matching the target, but ignores those that have a "/" before
+        or after them.
+
+        Args:
+            target: The target to make a regex pattern for.
+
+        Returns:
+            str: The regex pattern.
+        """
         return r"(?<!\/)\b" + target + r"\b(?!\/)"
 
+    logger.debug("Finding and replacing.")
     pattern = make_regex_pattern(target)
     if not match_case:
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)

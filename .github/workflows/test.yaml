@@ -7,10 +7,24 @@ on:
   pull_request:
 
 jobs:
-  unit:
+  tests:
     runs-on: ubuntu-latest
+
     env:
       OPENAI_API_KEY: dummy_variable
+      ELASTIC_PASSWORD: dummy_variable
+      ELASTIC_URL: http://localhost:9200
+
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.9.2
+        env:
+          discovery.type: single-node
+          cluster.name: elasticsearch
+          ELASTIC_PASSWORD: ${{ env.ELASTIC_PASSWORD }}
+        ports:
+          - 9200:9200
+
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
