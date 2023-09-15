@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+      - name: Test if ES runs
+        run: |
+          curl -X GET $ELASTIC_URL
       - name: Run tests
         id: run-tests
         run: >
