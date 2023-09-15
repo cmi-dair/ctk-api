@@ -22,7 +22,6 @@ jobs:
           discovery.type: single-node
           cluster.name: elasticsearch
           ELASTIC_PASSWORD: ${{ env.ELASTIC_PASSWORD }}
-          xpack.security.enabled: "false"
         ports:
           - 9200:9200
         options: >-
