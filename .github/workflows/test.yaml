@@ -9,7 +9,7 @@ on:
 env:
   OPENAI_API_KEY: dummy_variable
   ELASTIC_PASSWORD: dummy_variable
-  ELASTIC_URL: http://localhost:9200
+  ELASTIC_URL: http://127.0.0.1:9200
 
 jobs:
   tests:
