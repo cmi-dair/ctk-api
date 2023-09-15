@@ -42,17 +42,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Wait for Elasticsearch to start
-        run: |
-          timeout=60
-          while ! curl -sSf http://localhost:9200; do
-            sleep 1
-            ((timeout--))
-            if [[ $timeout -eq 0 ]]; then
-              echo "Elasticsearch failed to start within 60 seconds"
-              exit 1
-            fi
-          done
       - name: Run tests
         id: run-tests
         run: >
