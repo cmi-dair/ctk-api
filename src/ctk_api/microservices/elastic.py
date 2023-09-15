@@ -76,7 +76,7 @@ class ElasticClient:
             )
         now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         document["created_at"] = now
-        document["mofidied_at"] = now
+        document["modified_at"] = now
         document_id = uuid.uuid4().hex
         return self.client.create(id=document_id, index=index, document=document)
 

@@ -77,11 +77,9 @@ def test_summarization_endpoint(
         "ctk_api.microservices.elastic.ElasticClient.update", return_value=None
     )
     mocker.patch("openai.ChatCompletion.create", return_value=mock_openai_response)
-
     expected = mock_openai_response["choices"][0]["message"]["content"]
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
 
-    print(response.json())
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected
