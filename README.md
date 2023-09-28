@@ -1,4 +1,4 @@
-# Clinician Toolkit Frontend
+# Clinician Toolkit API
 
 This repository contains the API code for the clinician toolkit. It is a Python3.11 FastAPI application. It is deployed as a Docker container.
 
