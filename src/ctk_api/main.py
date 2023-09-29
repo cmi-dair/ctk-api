@@ -5,6 +5,7 @@ import fastapi
 from fastapi.middleware import cors
 
 from ctk_api.core import config
+from ctk_api.routers.diagnoses import views as diagnoses_views
 from ctk_api.routers.summarization import views as summarization_views
 
 settings = config.get_settings()
@@ -15,6 +16,7 @@ logger = logging.getLogger(LOGGER_NAME)
 
 logger.info("Initializing API routes.")
 api_router = fastapi.APIRouter(prefix="/api/v1")
+api_router.include_router(diagnoses_views.router)
 api_router.include_router(summarization_views.router)
 
 logger.info("Starting API.")

@@ -19,6 +19,11 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
         "development", json_schema_extra={"env": "CTK_API_ENVIRONMENT"}
     )
 
+    DIAGNOSES_FILE: pathlib.Path = pydantic.Field(
+        pathlib.Path(__file__).parent.parent / "data" / "diagnoses.yaml",
+        json_schema_extra={"env": "DIAGNOSES_FILE"},
+    )
+
     OPENAI_API_KEY: pydantic.SecretStr = pydantic.Field(
         ..., json_schema_extra={"env": "OPENAI_API_KEY"}
     )
