@@ -17,6 +17,7 @@ class Endpoints(str, enum.Enum):
 
     ANONYMIZE_REPORT = f"{API_ROOT}/summarization/anonymize_report"
     SUMMARIZE_REPORT = f"{API_ROOT}/summarization/summarize_report"
+    DIAGNOSES = f"{API_ROOT}/diagnoses"
 
 
 @pytest.fixture
