@@ -49,7 +49,7 @@ def anonymize_report(docx_file: fastapi.UploadFile) -> str:
 
 def summarize_report(
     report: schemas.Report, elastic_client: elastic.ElasticClient
-) -> str:
+) -> fastapi.Response:
     """Summarizes a clinical report by sending it to OpenAI. Both the
     report and the summary are stored in Elasticsearch for caching and
     auditing.
