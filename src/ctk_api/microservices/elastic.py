@@ -25,6 +25,8 @@ LOGGER_NAME = settings.LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
+INDICES = {"summarization"}
+
 
 class ElasticClient:
     """A client for interacting with Elasticsearch.
@@ -50,6 +52,14 @@ class ElasticClient:
                 password.get_secret_value(),  # pylint: disable=no-member
             ),
         )
+        self._create_default_indices()
+
+    def _create_default_indices(self) -> None:
+        """Creates the default indices if they do not already exist."""
+        for index in INDICES:
+            if not self.client.indices.exists(index=index):
+                logger.debug("Creating index %s.", index)
+                self.client.indices.create(index=index)
 
     def create(
         self, index: str, document: dict[str, Any]
@@ -138,7 +148,13 @@ class ElasticClient:
             The response from Elasticsearch.
         """
         logger.debug("Searching Elasticsearch.")
-        return self.client.search(index=index, query=query)
+        try:
+            return self.client.search(index=index, query=query)
+        except elasticsearch.NotFoundError as exc_info:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The specified index does not exist.",
+            ) from exc_info
 
     def close(self) -> None:
         """Closes the Elasticsearch client."""
