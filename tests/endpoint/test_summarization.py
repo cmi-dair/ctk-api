@@ -10,11 +10,6 @@ from fastapi import status, testclient
 from . import conftest
 
 
-class MockElasticResponse:
-    def __init__(self):
-        self._id = "1"
-
-
 @pytest.fixture
 def mock_openai_response() -> dict[str, Any]:
     """Returns a mock OpenAI response."""
@@ -58,7 +53,7 @@ def test_anonymization_endpoint(
     assert response.json() == expected
 
 
-def test_summarization_endpoint(
+def test_summarization_endpoint_new(
     mocker: pytest_mock.MockFixture,
     mock_openai_response: dict[str, Any],
     client: testclient.TestClient,
@@ -71,7 +66,7 @@ def test_summarization_endpoint(
     )
     mocker.patch(
         "ctk_api.microservices.elastic.ElasticClient.create",
-        return_value=MockElasticResponse(),
+        return_value={"_id": "123"},
     )
     mocker.patch(
         "ctk_api.microservices.elastic.ElasticClient.update", return_value=None
@@ -81,5 +76,23 @@ def test_summarization_endpoint(
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected
+
+
+def test_summarization_endpoint_exists(
+    mocker: pytest_mock.MockFixture,
+    client: testclient.TestClient,
+    endpoints: conftest.Endpoints,
+) -> None:
+    """Tests the summarization endpoint when the document already exists."""
+    expected = {"summary": {"Hello there.": "Hello there."}}
+    mocker.patch(
+        "ctk_api.routers.summarization.controller._check_for_existing_document",
+        return_value=expected,
+    )
+
+    response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected["summary"]

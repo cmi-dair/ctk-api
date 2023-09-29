@@ -1,5 +1,6 @@
 """The controller for the summarization router."""
 import functools
+import json
 import logging
 import pathlib
 from typing import Any
@@ -62,8 +63,11 @@ def summarize_report(
     """
     logger.info("Checking if request was made before.")
     existing_document = _check_for_existing_document(report, elastic_client)
+
     if existing_document:
-        return existing_document["summary"]
+        return fastapi.Response(
+            json.dumps(existing_document["summary"]), status_code=status.HTTP_200_OK
+        )
 
     logger.debug("Creating request document.")
     document = elastic_client.create(
@@ -73,9 +77,10 @@ def summarize_report(
 
     logger.debug(
         "Sending report %s to OpenAI.",
-        document._id,  # pylint: disable=protected-access
+        document["_id"],
     )
     system_prompt = get_system_prompt(OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE)
+
     response = openai.ChatCompletion.create(
         model=OPENAI_CHAT_COMPLETION_MODEL,
         messages=[
@@ -86,16 +91,19 @@ def summarize_report(
 
     logger.debug(
         "Saving response for report %s from OpenAI.",
-        document._id,  # pylint: disable=protected-access
+        document["_id"],
     )
     response_text = response["choices"][0]["message"]["content"]
     elastic_client.update(
         index="summarization",
-        document_id=document._id,  # pylint: disable=protected-access
+        document_id=document["_id"],
         document={"summary": response_text},
     )
 
-    return response_text
+    return fastapi.Response(
+        json.dumps(response_text),
+        status_code=status.HTTP_201_CREATED,
+    )
 
 
 @functools.lru_cache()
@@ -126,9 +134,8 @@ def _check_for_existing_document(
     Returns:
         dict[str, Any] | None: The existing document if it exists, else None.
     """
-    existing_document = elastic_client.search(
-        index="summarization", query={"report": report.text}
-    )
+    query = {"match_phrase": {"report": report.text}}
+    existing_document = elastic_client.search(index="summarization", query=query)
 
     if existing_document["hits"]["total"]["value"] == 0:
         logger.debug("Request was not made before.")

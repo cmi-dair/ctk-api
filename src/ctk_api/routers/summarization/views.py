@@ -35,7 +35,7 @@ async def anonymize_report(
 async def summarize_report(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient = fastapi.Depends(elastic.ElasticClient),
-) -> str:
+) -> fastapi.Response:
     """POST endpoint for summarizing a clinical report.
 
     Args:
