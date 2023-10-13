@@ -1,5 +1,6 @@
 """View definitions for the diagnoses router."""
 import logging
+from typing import Any
 
 import fastapi
 
@@ -15,7 +16,7 @@ router = fastapi.APIRouter(prefix="/diagnoses", tags=["diagnoses"])
 
 
 @router.get("")
-async def get_diagnoses() -> dict:
+async def get_diagnoses() -> list[dict[str, Any]]:
     """Gets the dictionary of diagnoses.
 
     Returns:

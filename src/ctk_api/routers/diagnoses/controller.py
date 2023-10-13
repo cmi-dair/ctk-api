@@ -1,8 +1,7 @@
 """Controller for the diagnoses endpoint."""
+import json
 import logging
 from typing import Union
-
-import yaml
 
 from ctk_api.core import config
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(LOGGER_NAME)
 RecursiveDict = dict[str, Union[str, "RecursiveDict"]]
 
 
-def get_diagnoses() -> RecursiveDict:
+def get_diagnoses() -> list[RecursiveDict]:
     """Gets the dictionary of diagnoses.
 
     Returns:
@@ -23,5 +22,6 @@ def get_diagnoses() -> RecursiveDict:
     """
     logger.debug("Getting diagnoses.")
     with open(DIAGNOSES_FILE, "r", encoding="utf-8") as file:
-        diagnoses = yaml.safe_load(file)
+        diagnoses = json.load(file)
+
     return diagnoses
