@@ -1,7 +1,7 @@
 """Tests the diagnoses endpoints."""
+import json
 import pathlib
 
-import yaml
 from fastapi import status, testclient
 
 import ctk_api
@@ -9,7 +9,7 @@ import ctk_api
 from . import conftest
 
 module_dir = pathlib.Path(ctk_api.__file__).parent
-DIAGNOSES_FILE = module_dir / "data" / "diagnoses.yaml"
+DIAGNOSES_FILE = module_dir / "data" / "diagnoses.json"
 
 
 def test_diagnoses_endpoint(
@@ -18,7 +18,7 @@ def test_diagnoses_endpoint(
 ) -> None:
     """Tests the anonymization endpoint."""
     with open(DIAGNOSES_FILE, "r", encoding="utf-8") as file:
-        expected = yaml.safe_load(file)
+        expected = json.load(file)
 
     actual = client.get(endpoints.DIAGNOSES)
 

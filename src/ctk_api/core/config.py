@@ -20,7 +20,7 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
     )
 
     DIAGNOSES_FILE: pathlib.Path = pydantic.Field(
-        pathlib.Path(__file__).parent.parent / "data" / "diagnoses.yaml",
+        pathlib.Path(__file__).parent.parent / "data" / "diagnoses.json",
         json_schema_extra={"env": "DIAGNOSES_FILE"},
     )
 
