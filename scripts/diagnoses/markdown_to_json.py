@@ -1,8 +1,8 @@
-"""Converts a markdown file to YAML.
+"""Converts a markdown file to JSON.
 
 This script is intended to be called from the command line with `python
-markdown_to_yaml.py <input_file> <output_file>`. It will convert the markdown
-file to YAML and write it to the output file.
+markdown_to_json.py <input_file> <output_file>`. It will convert the markdown
+file to JSON and write it to the output file.
 
 This script was built and with Python 3.11, but as it relies only on the Python
 standard library, it should work with any version of Python 3.
@@ -70,7 +70,7 @@ def parse_markdown(file_path: str) -> list[dict[str, Any]]:
         file_path: The path to the markdown file.
 
     Returns:
-        List[Dict[str, Any]]: The JSON representation of the markdown file.
+        list[dict[str, Any]]: The JSON representation of the markdown file.
     """
     with open(file_path, "r", encoding="utf-8") as file_buffer:
         lines = file_buffer.readlines()
