@@ -30,7 +30,7 @@ class TestElastic:
     @classmethod
     def setup_class(cls) -> None:
         """Set up the test class by initializing an ElasticSearch client."""
-        cls.elastic_client = elastic.get_elastic_client()
+        cls.elastic_client = elastic.ElasticClient()
 
     def setup_method(self) -> None:
         """This method deletes the test index from the Elasticsearch cluster to

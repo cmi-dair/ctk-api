@@ -6,14 +6,15 @@ from typing import Any
 import pytest
 import pytest_mock
 from fastapi import status, testclient
+from pytest_mock import plugin
 
 from . import conftest
 
 
 @pytest.fixture
-def mock_openai_response() -> dict[str, Any]:
+def mock_openai_response(mocker: plugin.MockerFixture) -> dict[str, Any]:
     """Returns a mock OpenAI response."""
-    return {
+    response = {
         "id": "chatcmpl-123",
         "object": "chat.completion",
         "created": 1677652288,
@@ -30,6 +31,8 @@ def mock_openai_response() -> dict[str, Any]:
         ],
         "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21},
     }
+    mocker.patch("openai.ChatCompletion.create", return_value=response)
+    return response
 
 
 def test_anonymization_endpoint(
@@ -54,24 +57,16 @@ def test_anonymization_endpoint(
 
 
 def test_summarization_endpoint_new(
-    mocker: pytest_mock.MockFixture,
+    mocker: plugin.MockerFixture,
     mock_openai_response: dict[str, Any],
     client: testclient.TestClient,
     endpoints: conftest.Endpoints,
 ) -> None:
     """Tests the summarization endpoint."""
     mocker.patch(
-        "ctk_api.microservices.elastic.ElasticClient.search",
-        return_value={"hits": {"total": {"value": 0}}},
+        "ctk_api.routers.summarization.controller._check_for_existing_document",
+        return_value=None,
     )
-    mocker.patch(
-        "ctk_api.microservices.elastic.ElasticClient.create",
-        return_value={"_id": "123"},
-    )
-    mocker.patch(
-        "ctk_api.microservices.elastic.ElasticClient.update", return_value=None
-    )
-    mocker.patch("openai.ChatCompletion.create", return_value=mock_openai_response)
     expected = mock_openai_response["choices"][0]["message"]["content"]
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})

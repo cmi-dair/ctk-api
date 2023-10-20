@@ -1,7 +1,7 @@
 """Middleware for the FastAPI application."""
 import logging
 import uuid
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, MutableMapping
 
 import fastapi
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 class RequestLoggerMiddleware:  # pylint: disable=too-few-public-methods
-    """Middleware that logs incoming requests and their corresponding responses."""
+    """Middleware that logs incoming requests."""
 
     def __init__(self, app: fastapi.FastAPI) -> None:
         """Initializes a new instance of the RequestLoggerMiddleware class.
@@ -26,8 +26,16 @@ class RequestLoggerMiddleware:  # pylint: disable=too-few-public-methods
         self,
         scope: dict[str, Any],
         receive: Callable[[], Awaitable[dict[str, Any]]],
-        send: Callable[[dict[str, Any]], Awaitable[None]],
-    ) -> fastapi.Response:
+        send: Callable[[MutableMapping[str, Any]], Awaitable[None]],
+    ) -> None:
+        """Middleware method that handles incoming HTTP requests.
+
+        Args:
+            scope: The ASGI scope of the incoming request.
+            receive: A coroutine that receives incoming messages.
+            send: A coroutine that sends outgoing messages.
+
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -42,8 +50,6 @@ class RequestLoggerMiddleware:  # pylint: disable=too-few-public-methods
             request.url.path,
         )
 
-        response = await self.app(scope, receive, send)
+        await self.app(scope, receive, send)
 
-        logger.info("Finished request: %s - %s", request_id, response.status_code)
-
-        return response
+        logger.info("Finished request: %s.", request_id)

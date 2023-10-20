@@ -56,6 +56,7 @@ class ElasticClient:
 
     def _create_default_indices(self) -> None:
         """Creates the default indices if they do not already exist."""
+        logger.debug("Creating default indices.")
         for index in INDICES:
             if not self.client.indices.exists(index=index):
                 logger.debug("Creating index %s.", index)
@@ -160,16 +161,3 @@ class ElasticClient:
         """Closes the Elasticsearch client."""
         logger.debug("Closing Elasticsearch client.")
         self.client.close()
-
-
-def get_elastic_client() -> ElasticClient:
-    """Creates an instance of the Elasticsearch client.
-
-    Returns:
-        An instance of the Elasticsearch client.
-
-    Notes:
-        This function is used as a dependency in FastAPI.
-    """
-    logger.info("Creating Elasticsearch client.")
-    return ElasticClient()
