@@ -1,11 +1,11 @@
 """This module contains fixtures and configurations for testing the endpoints of
 the CTK API.
 """
-
 import enum
 
 import pytest
 from fastapi import testclient
+from pytest_mock import plugin
 
 from ctk_api import main
 
@@ -27,6 +27,9 @@ def endpoints() -> type[Endpoints]:
 
 
 @pytest.fixture
-def client() -> testclient.TestClient:
+def client(mocker: plugin.MockerFixture) -> testclient.TestClient:
     """Returns a test client for the API."""
+    mocker.patch("ctk_api.microservices.elastic.ElasticClient._create_default_indices")
+    mocker.patch("ctk_api.microservices.elastic.ElasticClient.create")
+    mocker.patch("ctk_api.microservices.elastic.ElasticClient.update")
     return testclient.TestClient(main.app)

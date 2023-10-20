@@ -11,7 +11,7 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
     """Settings for the API."""
 
     LOGGER_NAME: str = pydantic.Field("Clinician Toolkit API")
-    LOGGER_VERBOSITY: int = pydantic.Field(
+    LOGGER_VERBOSITY: int | None = pydantic.Field(
         logging.DEBUG, json_schema_extra={"env": "LOGGER_VERBOSITY"}
     )
 
@@ -84,7 +84,8 @@ def initialize_logger() -> None:
     """Initializes the logger for the API."""
     settings = get_settings()
     logger = logging.getLogger(settings.LOGGER_NAME)
-    logger.setLevel(settings.LOGGER_VERBOSITY)
+    if settings.LOGGER_VERBOSITY is not None:
+        logger.setLevel(settings.LOGGER_VERBOSITY)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s - %(funcName)s - %(message)s"
