@@ -26,33 +26,38 @@ logger = logging.getLogger(LOGGER_NAME)
 
 
 def anonymize_report(docx_file: fastapi.UploadFile) -> str:
-    """Anonymizes a clinical report. This function is specific
-    to the file format used by HBN's clinical reports and will not work for
-    other file formats.
+    """Anonymizes a clinical report.
 
     Args:
         docx_file: The report's docx file to anonymize.
 
     Returns:
         str: The anonymized file.
+
+    Notes:
+        This function is specific to the file format used by HBN's clinical
+        reports and will not work for other file formats.
     """
     logger.info("Anonymizing report.")
     document = docx.Document(docx_file.file)
     first_name, last_name = anonymizer.get_patient_name(document)
     paragraphs = anonymizer.get_diagnostic_paragraphs(document)
     anonymized_paragraphs = anonymizer.anonymize_paragraphs(
-        paragraphs, first_name, last_name
+        paragraphs,
+        first_name,
+        last_name,
     )
-    anonymized_text = "\n".join([p.text for p in anonymized_paragraphs])
-    return anonymized_text
+    return "\n".join([p.text for p in anonymized_paragraphs])
 
 
 def summarize_report(
-    report: schemas.Report, elastic_client: elastic.ElasticClient
+    report: schemas.Report,
+    elastic_client: elastic.ElasticClient,
 ) -> fastapi.Response:
-    """Summarizes a clinical report by sending it to OpenAI. Both the
-    report and the summary are stored in Elasticsearch for caching and
-    auditing.
+    """Summarizes a clinical report.
+
+    Clinical reports are sent to OpenAI. Both the report and the summary are
+    stored in Elasticsearch for caching and auditing.
 
     Args:
         report: The report to summarize.
@@ -66,7 +71,8 @@ def summarize_report(
 
     if existing_document:
         return fastapi.Response(
-            json.dumps(existing_document["summary"]), status_code=status.HTTP_200_OK
+            json.dumps(existing_document["summary"]),
+            status_code=status.HTTP_200_OK,
         )
 
     logger.debug("Creating request document.")
@@ -106,8 +112,8 @@ def summarize_report(
     )
 
 
-@functools.lru_cache()
-def get_system_prompt(filename: str | pathlib.Path):
+@functools.lru_cache
+def get_system_prompt(filename: pathlib.Path) -> str:
     """Gets the system prompt for the OpenAI chat completion model.
 
     Args:
@@ -117,15 +123,15 @@ def get_system_prompt(filename: str | pathlib.Path):
         str: The system prompt.
     """
     logger.info("Getting system prompt.")
-    with open(filename, "r", encoding="utf-8") as file_buffer:
+    with pathlib.Path.open(filename, encoding="utf-8") as file_buffer:
         return file_buffer.read()
 
 
 def _check_for_existing_document(
-    report: schemas.Report, elastic_client: elastic.ElasticClient
+    report: schemas.Report,
+    elastic_client: elastic.ElasticClient,
 ) -> dict[str, Any] | None:
-    """Checks if a document already exists in Elasticsearch for the given
-    report.
+    """Checks if a document already exists in Elasticsearch.
 
     Args:
         report: The report to check for.

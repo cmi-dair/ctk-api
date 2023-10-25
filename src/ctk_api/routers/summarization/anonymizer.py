@@ -59,7 +59,8 @@ def get_patient_name(document: docx.Document) -> tuple[str, str]:
 
     logger.error("Patient name not found.")
     raise fastapi.HTTPException(
-        status.HTTP_400_BAD_REQUEST, detail="Patient name not found."
+        status.HTTP_400_BAD_REQUEST,
+        detail="Patient name not found.",
     )
 
 
@@ -111,7 +112,9 @@ def anonymize_paragraphs(
 
 
 def _anonymize_paragraph(
-    paragraph: docx_paragraph.Paragraph, first_name: str, last_name: str
+    paragraph: docx_paragraph.Paragraph,
+    first_name: str,
+    last_name: str,
 ) -> docx_paragraph.Paragraph:
     """Anonymizes a single paragraph of a clinical report.
 
@@ -137,7 +140,11 @@ def _anonymize_paragraph(
 
 
 def _find_and_replace(
-    text: str, target: str, replacement: str, match_case: bool = False
+    text: str,
+    target: str,
+    replacement: str,
+    *,
+    match_case: bool = False,
 ) -> str:
     """Anonymizes the patient's pronouns in a paragraph.
 
@@ -154,9 +161,10 @@ def _find_and_replace(
     """
 
     def make_regex_pattern(target: str) -> str:
-        """Makes a regex pattern for the target. This pattern looks for complete
-        words matching the target, but ignores those that have a "/" before
-        or after them.
+        """Makes a regex pattern for the target.
+
+        This pattern looks for complete words matching the target, but ignores
+        those that have a "/" before or after them.
 
         Args:
             target: The target to make a regex pattern for.
@@ -173,7 +181,7 @@ def _find_and_replace(
     else:
         text = re.sub(pattern, replacement, text)
         capitalized_replacements = "/".join(
-            [replace.capitalize() for replace in replacement.split("/")]
+            [replace.capitalize() for replace in replacement.split("/")],
         )
         pattern_capitalize = make_regex_pattern(target.capitalize())
         text = re.sub(pattern_capitalize, capitalized_replacements, text)

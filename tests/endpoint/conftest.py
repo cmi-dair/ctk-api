@@ -1,6 +1,4 @@
-"""This module contains fixtures and configurations for testing the endpoints of
-the CTK API.
-"""
+"""Fixtures and configurations for testing the endpoints of the CTK API."""
 import enum
 
 import pytest
@@ -20,13 +18,13 @@ class Endpoints(str, enum.Enum):
     DIAGNOSES = f"{API_ROOT}/diagnoses"
 
 
-@pytest.fixture
+@pytest.fixture()
 def endpoints() -> type[Endpoints]:
     """Returns the Endpoints enum class."""
     return Endpoints
 
 
-@pytest.fixture
+@pytest.fixture()
 def client(mocker: plugin.MockerFixture) -> testclient.TestClient:
     """Returns a test client for the API."""
     mocker.patch("ctk_api.microservices.elastic.ElasticClient._create_default_indices")

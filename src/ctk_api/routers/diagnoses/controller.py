@@ -1,6 +1,7 @@
 """Controller for the diagnoses endpoint."""
 import json
 import logging
+import pathlib
 from typing import Union
 
 from ctk_api.core import config
@@ -21,7 +22,5 @@ def get_diagnoses() -> list[RecursiveDict]:
         The dictionary of diagnoses.
     """
     logger.debug("Getting diagnoses.")
-    with open(DIAGNOSES_FILE, "r", encoding="utf-8") as file:
-        diagnoses = json.load(file)
-
-    return diagnoses
+    with pathlib.Path.open(DIAGNOSES_FILE, encoding="utf-8") as file:
+        return json.load(file)

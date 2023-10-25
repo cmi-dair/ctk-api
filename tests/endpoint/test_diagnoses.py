@@ -17,7 +17,7 @@ def test_diagnoses_endpoint(
     endpoints: conftest.Endpoints,
 ) -> None:
     """Tests the anonymization endpoint."""
-    with open(DIAGNOSES_FILE, "r", encoding="utf-8") as file:
+    with pathlib.Path.open(DIAGNOSES_FILE, encoding="utf-8") as file:
         expected = json.load(file)
 
     actual = client.get(endpoints.DIAGNOSES)

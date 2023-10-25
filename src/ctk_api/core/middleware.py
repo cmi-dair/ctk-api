@@ -1,7 +1,8 @@
 """Middleware for the FastAPI application."""
 import logging
 import uuid
-from typing import Any, Awaitable, Callable, MutableMapping
+from collections.abc import Awaitable, Callable, MutableMapping
+from typing import Any
 
 import fastapi
 
