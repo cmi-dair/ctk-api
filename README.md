@@ -1,4 +1,7 @@
 # Clinician Toolkit API
+[![Build](https://github.com/cmi-dair/ctk-api/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/cmi-dair/ctk-api/actions/workflows/test.yaml?query=branch%3Amain)
+![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 This repository contains the API code for the clinician toolkit. It is a Python3.11 FastAPI application. It is deployed as a Docker container.
 
