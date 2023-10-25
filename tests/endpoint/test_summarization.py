@@ -11,7 +11,7 @@ from pytest_mock import plugin
 from . import conftest
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_openai_response(mocker: plugin.MockerFixture) -> dict[str, Any]:
     """Returns a mock OpenAI response."""
     response = {
@@ -27,7 +27,7 @@ def mock_openai_response(mocker: plugin.MockerFixture) -> dict[str, Any]:
                     "content": "\n\nHello there, how may I assist you today?",
                 },
                 "finish_reason": "stop",
-            }
+            },
         ],
         "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21},
     }
@@ -42,12 +42,9 @@ def test_anonymization_endpoint(
 ) -> None:
     """Tests the anonymization endpoint."""
     form_data = {"docx_file": document}
-    expected = "\n".join(
-        [
-            "clinical summary and impression",
-            "Name: [FIRST_NAME] [LAST_NAME]",
-            "He/She he/she himself/herself man/woman",
-        ]
+    expected = (
+        "clinical summary and impression\nName: [FIRST_NAME] [LAST_NAME]\n"
+        "He/She he/she himself/herself man/woman"
     )
 
     response = client.post(endpoints.ANONYMIZE_REPORT, files=form_data)

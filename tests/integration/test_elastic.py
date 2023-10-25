@@ -1,4 +1,4 @@
-""" Integration tests for the Elasticsearch client. """
+"""Integration tests for the Elasticsearch client."""
 # mypy: disable-error-code="attr-defined"
 # attr-defined is disabled because elastic_client is not recognized as
 # a TestClass property.
@@ -10,7 +10,7 @@ from ctk_api.microservices import elastic
 TEST_INDEX = "test_index"
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def es_document() -> dict[str, str]:
     """Returns a test document.
 
@@ -22,10 +22,7 @@ def es_document() -> dict[str, str]:
 
 
 class TestElastic:
-    """This class contains integration tests for the ElasticSearch client.
-    It tests creating, reading, updating, deleting, and searching documents in
-    Elasticsearch.
-    """
+    """Integration tests for the ElasticSearch client."""
 
     @classmethod
     def setup_class(cls) -> None:
@@ -33,10 +30,13 @@ class TestElastic:
         cls.elastic_client = elastic.ElasticClient()
 
     def setup_method(self) -> None:
-        """This method deletes the test index from the Elasticsearch cluster to
-        ensure a clean slate for each test."""
+        """Setup for the tests.
+
+        This method deletes the test index from the Elasticsearch cluster to
+        ensure a clean slate for each test.
+        """
         self.elastic_client.client.options(ignore_status=[400, 404]).indices.delete(
-            index=TEST_INDEX
+            index=TEST_INDEX,
         )
 
     def test_create(self, es_document: dict[str, str]) -> None:
@@ -76,7 +76,9 @@ class TestElastic:
         self.elastic_client.client.indices.refresh()
 
         update_response = self.elastic_client.update(
-            TEST_INDEX, document_id, {"test_key": "updated_value"}
+            TEST_INDEX,
+            document_id,
+            {"test_key": "updated_value"},
         )
         read_response = self.elastic_client.read(TEST_INDEX, document_id)
 

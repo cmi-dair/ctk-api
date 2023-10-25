@@ -1,12 +1,12 @@
-""" A client for interacting with Elasticsearch.
+"""A client for interacting with Elasticsearch.
 
 This module contains a client for interacting with Elasticsearch. It also
 contains a getter function that is intended to be used as a dependency in
 FastAPI.
 """
+import datetime
 import logging
 import uuid
-from datetime import datetime
 from typing import Any
 
 import elastic_transport
@@ -41,7 +41,13 @@ class ElasticClient:
         self,
         url: pydantic.AnyHttpUrl | str = ELASTIC_URL,
         password: pydantic.SecretStr = ELASTIC_PASSWORD,
-    ):
+    ) -> None:
+        """Initializes a new instance of the ElasticClient class.
+
+        Args:
+            url: The URL of the Elasticsearch instance.
+            password: The password to use when connecting to the Elasticsearch instance.
+        """
         logger.info("Initializing Elasticsearch client.")
         self.url = str(url)
         logger.debug("Connecting to %s.", self.url)
@@ -63,13 +69,15 @@ class ElasticClient:
                 self.client.indices.create(index=index)
 
     def create(
-        self, index: str, document: dict[str, Any]
+        self,
+        index: str,
+        document: dict[str, Any],
     ) -> elastic_transport.ObjectApiResponse:
         """Creates a document in the specified index.
 
         Args:
             index: The index to create the document in.
-            body: The document to create.
+            document: The document to create.
 
         Returns:
             The response from Elasticsearch.
@@ -83,9 +91,12 @@ class ElasticClient:
         if "created_at" in document or "modified_at" in document:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Document should not already have a 'created_at' or 'modified_at' field.",
+                detail=(
+                    "Document should not already have a 'created_at' "
+                    "or 'modified_at' field."
+                ),
             )
-        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        now = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         document["created_at"] = now
         document["modified_at"] = now
         document_id = uuid.uuid4().hex
@@ -105,14 +116,17 @@ class ElasticClient:
         return self.client.get(index=index, id=document_id)
 
     def update(
-        self, index: str, document_id: str, document: dict[str, Any]
+        self,
+        index: str,
+        document_id: str,
+        document: dict[str, Any],
     ) -> elastic_transport.ObjectApiResponse:
         """Updates a document in the specified index.
 
         Args:
             index: The index to update the document in.
             document_id: The ID of the document to update.
-            body: The document to update.
+            document: The document to update.
 
         Returns:
             The response from Elasticsearch.
@@ -123,7 +137,9 @@ class ElasticClient:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Document should not already have a 'created_at' field.",
             )
-        document["modified_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        document["modified_at"] = datetime.datetime.now(tz=datetime.UTC).strftime(
+            "%Y-%m-%dT%H:%M:%S.%fZ",
+        )
         return self.client.update(index=index, id=document_id, doc=document)
 
     def delete(self, index: str, document_id: str) -> None:
@@ -137,7 +153,9 @@ class ElasticClient:
         self.client.delete(index=index, id=document_id)
 
     def search(
-        self, index: str, query: dict[str, Any]
+        self,
+        index: str,
+        query: dict[str, Any],
     ) -> elastic_transport.ObjectApiResponse:
         """Searches the specified index.
 

@@ -6,10 +6,11 @@ file to JSON and write it to the output file.
 
 This script was built and with Python 3.11, but as it relies only on the Python
 standard library, it should work with any version of Python 3.
-"""
+"""  # noqa: INP001
 from __future__ import annotations
 
 import json
+import pathlib
 import sys
 from typing import Any
 
@@ -24,13 +25,19 @@ class Node:
         header (bool): Whether this node is a header node.
     """
 
-    def __init__(self, level: int = 0, header: bool = True):
-        self.children: list["Node"] = []
+    def __init__(self, level: int = 0, *, header: bool = True) -> None:
+        """Initializes a new instance of the Node class.
+
+        Args:
+            level: The level of this node in the tree.
+            header: Whether this node is a header node.
+        """
+        self.children: list[Node] = []
         self.level: int = level
         self.text: str = ""
         self.header: bool = header
 
-    def add_child(self, node: "Node") -> None:
+    def add_child(self, node: Node) -> None:
         """Adds a child node.
 
         Args:
@@ -54,7 +61,8 @@ class Node:
         This is a recursive method that calls itself for each child.
 
         Returns:
-            Dict[str, Union[str, List[Node]]]: The dictionary representation of the node.
+            dict[str, bool | str | list[dict[str, Any]]]: The dictionary
+                representation of the node.
         """
         return {
             "header": self.header,
@@ -72,7 +80,7 @@ def parse_markdown(file_path: str) -> list[dict[str, Any]]:
     Returns:
         list[dict[str, Any]]: The JSON representation of the markdown file.
     """
-    with open(file_path, "r", encoding="utf-8") as file_buffer:
+    with pathlib.Path(file_path).open(encoding="utf-8") as file_buffer:
         lines = file_buffer.readlines()
 
     root = Node()
@@ -99,22 +107,21 @@ def parse_markdown(file_path: str) -> list[dict[str, Any]]:
             stack.append(node)
         elif stripped_line:
             current_content_node.set_text(
-                (current_content_node.text + " " + stripped_line).strip()
+                (current_content_node.text + " " + stripped_line).strip(),
             )
 
     if current_content_node.text:
         stack[-1].add_child(current_content_node)
 
     children = [child.to_dict() for child in root.children]
-    json_structure = [{"text": "root", "children": children, "header": True}]
-    return json_structure
+    return [{"text": "root", "children": children, "header": True}]
 
 
 if __name__ == "__main__":
     input_file: str = sys.argv[1]
-    output_file: str = sys.argv[2]
+    output_file = pathlib.Path(sys.argv[2])
 
     json_content: list[dict[str, Any]] = parse_markdown(input_file)
 
-    with open(output_file, "w", encoding="utf-8") as file:
+    with output_file.open("w", encoding="utf-8") as file:
         json.dump(json_content, file, indent=2)

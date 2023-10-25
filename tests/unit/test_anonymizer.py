@@ -1,3 +1,4 @@
+"""Tests for the anonymizer module."""
 # pylint: disable=protected-access
 import tempfile
 
@@ -21,7 +22,7 @@ def test_get_diagnostic_paragraphs(document: tempfile._TemporaryFileWrapper) -> 
 
     diagnostic_paragraphs = anonymizer.get_diagnostic_paragraphs(document)
 
-    assert len(diagnostic_paragraphs) == 3
+    assert len(diagnostic_paragraphs) == 3  # noqa: PLR2004
     assert diagnostic_paragraphs[0].text == "clinical summary and impression"
 
 

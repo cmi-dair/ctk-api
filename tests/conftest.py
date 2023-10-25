@@ -1,15 +1,16 @@
 """Configurations for all tests."""
 import tempfile
-from typing import Generator
+from collections.abc import Generator
 
 import docx
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture()
 def document() -> Generator[tempfile._TemporaryFileWrapper, None, None]:
-    """Generates a new Word document with a title and a paragraph, and returns
-    the path to the saved file.
+    """Generates a fixture Word document.
+
+    This document contains a title and a paragraph.
 
     Returns:
         Generator[tempfile._TemporaryFileWrapper, None, None]: The saved file.
