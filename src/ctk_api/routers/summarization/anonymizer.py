@@ -34,7 +34,7 @@ GENDER_REPLACEMENTS = {
     ("man", "man/woman"),
     ("woman", "man/woman"),
     ("boy", "boy/girl"),
-    ("girl", "bow/girl"),
+    ("girl", "boy/girl"),
     ("son", "son/daughter"),
     ("daughter", "son/daughter"),
 }
