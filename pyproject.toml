@@ -16,7 +16,7 @@ pydantic-settings = "^2.0.3"
 python-multipart = "^0.0.6"
 uvicorn = "^0.23.2"
 openai = "^0.28.1"
-elasticsearch = "^8.9.0"
+elasticsearch = "^8.10.1"
 elastic-transport = "^8.10.0"
 
 [tool.poetry.group.dev.dependencies]
