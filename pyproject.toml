@@ -17,7 +17,7 @@ python-multipart = "^0.0.6"
 uvicorn = "^0.23.2"
 openai = "^0.28.0"
 elasticsearch = "^8.9.0"
-elastic-transport = "^8.4.0"
+elastic-transport = "^8.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
