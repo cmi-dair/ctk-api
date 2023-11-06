@@ -1305,16 +1305,18 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
 name = "python-docx"
-version = "0.8.11"
-description = "Create and update Microsoft Word .docx files."
+version = "1.1.0"
+description = "Create, read, and update Microsoft Word .docx files."
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
-    {file = "python-docx-0.8.11.tar.gz", hash = "sha256:1105d233a0956dd8dd1e710d20b159e2d72ac3c301041b95f4d4ceb3e0ebebc4"},
+    {file = "python-docx-1.1.0.tar.gz", hash = "sha256:5829b722141cf1ab79aedf0c34d9fe9924b29764584c0f2164eb2b02dcdf17c9"},
+    {file = "python_docx-1.1.0-py3-none-any.whl", hash = "sha256:bac9773278098a1ddc43a52d84e22f5909c4a3080a624530b3ecb3771b07c6cd"},
 ]
 
 [package.dependencies]
-lxml = ">=2.3.2"
+lxml = ">=3.1.0"
+typing-extensions = "*"
 
 [[package]]
 name = "python-dotenv"
@@ -1672,4 +1674,4 @@ docs = []
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a437f160a4a5fd6f4fbbb2a552e9238535a6943d61359fc048c886bfbb529dba"
+content-hash = "8cc98d0e74aa87e5237ecfaa76bcffd722293f716bc2abfb47082dd0b9be0da4"
