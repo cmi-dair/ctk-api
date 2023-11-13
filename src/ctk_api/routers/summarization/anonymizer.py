@@ -15,7 +15,7 @@ LOGGER_NAME = settings.LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 
 PARAGRAPHS_OF_INTEREST = {
-    "clinical summary and impression",
+    "clinical summary and impressions",
     "mental health assessment",
     "dsm-5 diagnostic summary",
 }
