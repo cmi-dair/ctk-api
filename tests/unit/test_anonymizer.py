@@ -23,7 +23,7 @@ def test_get_diagnostic_paragraphs(document: tempfile._TemporaryFileWrapper) -> 
     diagnostic_paragraphs = anonymizer.get_diagnostic_paragraphs(document)
 
     assert len(diagnostic_paragraphs) == 3  # noqa: PLR2004
-    assert diagnostic_paragraphs[0].text == "clinical summary and impression"
+    assert diagnostic_paragraphs[0].text == "clinical summary and impressions"
 
 
 def test_find_and_replace_no_match_case() -> None:
@@ -71,6 +71,6 @@ def test_anonymize_paragraphs(document: tempfile._TemporaryFileWrapper) -> None:
 
     assert len(actual) == len(doc.paragraphs)
     assert actual[0].text == "Title"
-    assert actual[1].text == "clinical summary and impression"
+    assert actual[1].text == "clinical summary and impressions"
     assert actual[2].text == "Name: [FIRST_NAME] [LAST_NAME]"
     assert actual[3].text == "He/She he/she himself/herself man/woman"

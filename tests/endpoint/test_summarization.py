@@ -43,7 +43,7 @@ def test_anonymization_endpoint(
     """Tests the anonymization endpoint."""
     form_data = {"docx_file": document}
     expected = (
-        "clinical summary and impression\nName: [FIRST_NAME] [LAST_NAME]\n"
+        "clinical summary and impressions\nName: [FIRST_NAME] [LAST_NAME]\n"
         "He/She he/she himself/herself man/woman"
     )
 

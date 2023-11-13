@@ -17,7 +17,7 @@ def document() -> Generator[tempfile._TemporaryFileWrapper, None, None]:
     """
     doc = docx.Document()
     doc.add_heading("Title", 0)
-    doc.add_heading("clinical summary and impression", 1)
+    doc.add_heading("clinical summary and impressions", 1)
     doc.add_paragraph("Name: Lea Avatar")
     doc.add_paragraph("He she herself man")
 
