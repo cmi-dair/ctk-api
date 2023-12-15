@@ -1,6 +1,5 @@
 """The controller for the summarization router."""
 import functools
-import json
 import logging
 import pathlib
 import tempfile
@@ -55,7 +54,7 @@ def summarize_report(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient,
     background_tasks: fastapi.BackgroundTasks,
-) -> fastapi.Response:
+) -> responses.FileResponse:
     """Summarizes a clinical report.
 
     Clinical reports are sent to OpenAI. Both the report and the summary are
@@ -73,9 +72,10 @@ def summarize_report(
     existing_document = _check_for_existing_document(report, elastic_client)
 
     if existing_document and "summary" in existing_document:
-        return fastapi.Response(
-            json.dumps(existing_document["summary"]),
-            status_code=status.HTTP_200_OK,
+        return _summmary_as_docx_response(
+            existing_document["summary"],
+            background_tasks,
+            status.HTTP_200_OK,
         )
 
     logger.debug("Creating request document.")
@@ -109,18 +109,17 @@ def summarize_report(
         document_id=document["_id"],
         document={"summary": response_text},
     )
+    if response_text is None:
+        logger.error("No response was received from OpenAI.")
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No response was received from OpenAI.",
+        )
 
-    logger.debug("Converting response to docx.")
-    with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as output_file:
-        _markdown_text_to_docx_file(response_text, output_file.name)
-
-    background_tasks.add_task(_remove_file, output_file.name)
-    return responses.FileResponse(
-        output_file.name,
-        filename="summary.docx",
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        background=background_tasks,
-        status_code=status.HTTP_201_CREATED,
+    return _summmary_as_docx_response(
+        response_text,
+        background_tasks,
+        status.HTTP_201_CREATED,
     )
 
 
@@ -181,17 +180,38 @@ def _remove_file(filename: str | pathlib.Path) -> None:
     pathlib.Path(filename).unlink()
 
 
-def _markdown_text_to_docx_file(
+def _summmary_as_docx_response(
     markdown_text: str,
-    output_file: str | pathlib.Path,
-) -> None:
+    background_tasks: fastapi.BackgroundTasks,
+    status_code: int,
+) -> responses.FileResponse:
     """Converts markdown text to a docx file.
 
     Args:
         markdown_text: The markdown text to convert.
-        output_file: The output file.
+        background_tasks: The background tasks to run.
+        status_code: The status code to return.
+
+    Returns:
+        The response with the docx file.
     """
-    with tempfile.NamedTemporaryFile(suffix=".md") as markdown_file:
+    with tempfile.NamedTemporaryFile(
+        suffix=".docx",
+        delete=False,
+    ) as output_file, tempfile.NamedTemporaryFile(suffix=".md") as markdown_file:
         markdown_file.write(markdown_text.encode("utf-8"))
         markdown_file.seek(0)
-        pypandoc.convert_file(markdown_file.name, "docx", outputfile=str(output_file))
+        pypandoc.convert_file(
+            markdown_file.name,
+            "docx",
+            outputfile=str(output_file.name),
+        )
+
+    background_tasks.add_task(_remove_file, output_file.name)
+    return responses.FileResponse(
+        output_file.name,
+        filename="summary.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        background=background_tasks,
+        status_code=status_code,
+    )

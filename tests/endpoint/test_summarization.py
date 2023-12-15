@@ -104,13 +104,19 @@ def test_summarization_endpoint_exists(
     endpoints: conftest.Endpoints,
 ) -> None:
     """Tests the summarization endpoint when the document already exists."""
-    expected = {"summary": {"Hello there.": "Hello there."}}
+    document = {"summary": "Hello there."}
     mocker.patch(
         "ctk_api.routers.summarization.controller._check_for_existing_document",
-        return_value=expected,
+        return_value=document,
     )
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected["summary"]
+    assert (
+        response.headers["Content-Type"]
+        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    assert (
+        response.headers["Content-Disposition"] == 'attachment; filename="summary.docx"'
+    )
