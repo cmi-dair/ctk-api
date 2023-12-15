@@ -42,6 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+          poetry run python -c "import pypandoc; pypandoc.download_pandoc()"
       - name: Run tests
         id: run-tests
         run: >
