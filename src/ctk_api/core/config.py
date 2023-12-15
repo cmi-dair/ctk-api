@@ -34,11 +34,9 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
         "gpt-4",
         json_schema_extra={"env": "OPENAI_CHAT_COMPLETION_MODEL"},
     )
-    OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE: pathlib.Path = pydantic.Field(
-        pathlib.Path(__file__).parent.parent
-        / "data"
-        / "openai_default_chat_completion_system_prompt.txt",
-        json_schema_extra={"env": "OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE"},
+    OPENAI_CHAT_COMPLETION_PROMPT_FILE: pathlib.Path = pydantic.Field(
+        pathlib.Path(__file__).parent.parent / "data" / "prompts.yaml",
+        json_schema_extra={"env": "OPENAI_CHAT_COMPLETION_PROMPT_FILE"},
     )
 
     ELASTIC_URL: pydantic.AnyHttpUrl = pydantic.Field(

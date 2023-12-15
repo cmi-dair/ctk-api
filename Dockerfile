@@ -4,6 +4,7 @@ EXPOSE 8000
 
 WORKDIR /app
 
+COPY --from=pandoc/minimal:latest /pandoc /usr/bin/pandoc
 COPY . .
 
 RUN pip install poetry && \
