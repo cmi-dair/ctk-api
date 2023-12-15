@@ -3,12 +3,15 @@ import functools
 import json
 import logging
 import pathlib
-from typing import Any
+import tempfile
+from typing import Any, Literal
 
 import docx
 import fastapi
 import openai
-from fastapi import status
+import pypandoc
+import yaml
+from fastapi import responses, status
 
 from ctk_api.core import config
 from ctk_api.microservices import elastic
@@ -18,9 +21,7 @@ settings = config.get_settings()
 LOGGER_NAME = settings.LOGGER_NAME
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 OPENAI_CHAT_COMPLETION_MODEL = settings.OPENAI_CHAT_COMPLETION_MODEL
-OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE = (
-    settings.OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE
-)
+OPENAI_CHAT_COMPLETION_PROMPT_FILE = settings.OPENAI_CHAT_COMPLETION_PROMPT_FILE
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -53,6 +54,7 @@ def anonymize_report(docx_file: fastapi.UploadFile) -> str:
 def summarize_report(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient,
+    background_tasks: fastapi.BackgroundTasks,
 ) -> fastapi.Response:
     """Summarizes a clinical report.
 
@@ -62,6 +64,7 @@ def summarize_report(
     Args:
         report: The report to summarize.
         elastic_client: The Elasticsearch client.
+        background_tasks: The background tasks to run.
 
     Returns:
         str: The summarized file.
@@ -69,7 +72,7 @@ def summarize_report(
     logger.info("Checking if request was made before.")
     existing_document = _check_for_existing_document(report, elastic_client)
 
-    if existing_document:
+    if existing_document and "summary" in existing_document:
         return fastapi.Response(
             json.dumps(existing_document["summary"]),
             status_code=status.HTTP_200_OK,
@@ -85,9 +88,10 @@ def summarize_report(
         "Sending report %s to OpenAI.",
         document["_id"],
     )
-    system_prompt = get_system_prompt(OPENAI_CHAT_COMPLETION_SYSTEM_PROMPT_FILE)
+    system_prompt = get_prompt("system", "summarize_clinical_report")
 
-    response = openai.ChatCompletion.create(
+    client = openai.OpenAI(api_key=OPENAI_API_KEY.get_secret_value())
+    response = client.chat.completions.create(
         model=OPENAI_CHAT_COMPLETION_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -99,32 +103,42 @@ def summarize_report(
         "Saving response for report %s from OpenAI.",
         document["_id"],
     )
-    response_text = response["choices"][0]["message"]["content"]
+    response_text = response.choices[0].message.content
     elastic_client.update(
         index="summarization",
         document_id=document["_id"],
         document={"summary": response_text},
     )
 
-    return fastapi.Response(
-        json.dumps(response_text),
+    logger.debug("Converting response to docx.")
+    with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as output_file:
+        _markdown_text_to_docx_file(response_text, output_file.name)
+
+    background_tasks.add_task(_remove_file, output_file.name)
+    return responses.FileResponse(
+        output_file.name,
+        filename="summary.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        background=background_tasks,
         status_code=status.HTTP_201_CREATED,
     )
 
 
 @functools.lru_cache
-def get_system_prompt(filename: pathlib.Path) -> str:
+def get_prompt(category: Literal["system", "user"], name: str) -> str:
     """Gets the system prompt for the OpenAI chat completion model.
 
     Args:
-        filename: The filename of the system prompt file.
+        category: The type of prompt to get.
+        name: The name of the prompt to get.
 
     Returns:
         str: The system prompt.
     """
-    logger.info("Getting system prompt.")
-    with pathlib.Path.open(filename, encoding="utf-8") as file_buffer:
-        return file_buffer.read()
+    logger.debug("Getting %s prompt: %s.", category, name)
+    with OPENAI_CHAT_COMPLETION_PROMPT_FILE.open("r") as file:
+        prompts = yaml.safe_load(file)
+    return prompts[category][name]
 
 
 def _check_for_existing_document(
@@ -155,3 +169,29 @@ def _check_for_existing_document(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="More than one document was found for the request.",
     )
+
+
+def _remove_file(filename: str | pathlib.Path) -> None:
+    """Removes a file.
+
+    Args:
+        filename: The filename of the file to remove.
+    """
+    logger.debug("Removing file %s.", filename)
+    pathlib.Path(filename).unlink()
+
+
+def _markdown_text_to_docx_file(
+    markdown_text: str,
+    output_file: str | pathlib.Path,
+) -> None:
+    """Converts markdown text to a docx file.
+
+    Args:
+        markdown_text: The markdown text to convert.
+        output_file: The output file.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".md") as markdown_file:
+        markdown_file.write(markdown_text.encode("utf-8"))
+        markdown_file.seek(0)
+        pypandoc.convert_file(markdown_file.name, "docx", outputfile=str(output_file))

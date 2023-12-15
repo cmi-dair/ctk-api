@@ -1,7 +1,7 @@
 """Endpoint tests for the summarization router."""
 # pylint: disable=redefined-outer-name
+import dataclasses
 import tempfile
-from typing import Any
 
 import pytest
 import pytest_mock
@@ -11,28 +11,50 @@ from pytest_mock import plugin
 from . import conftest
 
 
-@pytest.fixture()
-def mock_openai_response(mocker: plugin.MockerFixture) -> dict[str, Any]:
+@dataclasses.dataclass(frozen=True)
+class OpenAiMessage:
+    """Represents a message from OpenAI's GPT.
+
+    Attributes:
+        content (str): The content of the message.
+    """
+
+    content: str = "test message"
+
+
+@dataclasses.dataclass(frozen=True)
+class OpenAiChoice:
+    """Represents a choice in the GPT response..
+
+    Attributes:
+        message (OpenAiMessage): The message associated with the choice.
+    """
+
+    message: OpenAiMessage = dataclasses.field(default_factory=OpenAiMessage)
+
+
+@dataclasses.dataclass(frozen=True)
+class OpenAiResponse:
+    """Represents a response from the OpenAI API.
+
+    Attributes:
+        choices (list[OpenAiChoice]): The list of choices in the response.
+    """
+
+    choices: list[OpenAiChoice] = dataclasses.field(
+        default_factory=lambda: [OpenAiChoice()],
+    )
+
+
+@pytest.fixture(autouse=True)
+def _mock_openai_response(mocker: plugin.MockerFixture) -> None:
     """Returns a mock OpenAI response."""
-    response = {
-        "id": "chatcmpl-123",
-        "object": "chat.completion",
-        "created": 1677652288,
-        "model": "gpt-3.5-turbo-0613",
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "\n\nHello there, how may I assist you today?",
-                },
-                "finish_reason": "stop",
-            },
-        ],
-        "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21},
-    }
-    mocker.patch("openai.ChatCompletion.create", return_value=response)
-    return response
+    response = OpenAiResponse()
+    openai = mocker.MagicMock()
+    mocker.patch("openai.OpenAI", return_value=openai)
+    openai.chat = mocker.MagicMock()
+    openai.chat.completions = mocker.MagicMock()
+    openai.chat.completions.create = mocker.MagicMock(return_value=response)
 
 
 def test_anonymization_endpoint(
@@ -55,7 +77,6 @@ def test_anonymization_endpoint(
 
 def test_summarization_endpoint_new(
     mocker: plugin.MockerFixture,
-    mock_openai_response: dict[str, Any],
     client: testclient.TestClient,
     endpoints: conftest.Endpoints,
 ) -> None:
@@ -64,12 +85,17 @@ def test_summarization_endpoint_new(
         "ctk_api.routers.summarization.controller._check_for_existing_document",
         return_value=None,
     )
-    expected = mock_openai_response["choices"][0]["message"]["content"]
 
     response = client.post(endpoints.SUMMARIZE_REPORT, json={"text": "Hello there."})
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == expected
+    assert (
+        response.headers["Content-Type"]
+        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    assert (
+        response.headers["Content-Disposition"] == 'attachment; filename="summary.docx"'
+    )
 
 
 def test_summarization_endpoint_exists(

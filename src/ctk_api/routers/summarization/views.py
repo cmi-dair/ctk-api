@@ -2,6 +2,7 @@
 import logging
 
 import fastapi
+from fastapi import responses
 
 from ctk_api.core import config
 from ctk_api.microservices import elastic
@@ -35,15 +36,17 @@ async def anonymize_report(
 async def summarize_report(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient = fastapi.Depends(elastic.ElasticClient),
-) -> fastapi.Response:
+    background_tasks: fastapi.BackgroundTasks = fastapi.BackgroundTasks(),
+) -> responses.FileResponse:
     """POST endpoint for summarizing a clinical report.
 
     Args:
         report: The report to summarize.
         elastic_client: The Elasticsearch client.
+        background_tasks: The background tasks to run.
 
     Returns:
         str: The summarized file.
     """
     logger.info("Endpoint: /summarization/summarize_report")
-    return controller.summarize_report(report, elastic_client)
+    return controller.summarize_report(report, elastic_client, background_tasks)
