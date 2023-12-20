@@ -1,5 +1,4 @@
 """Endpoint tests for the summarization router."""
-# pylint: disable=redefined-outer-name
 import dataclasses
 import tempfile
 
@@ -46,7 +45,7 @@ class OpenAiResponse:
     )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def _mock_openai_response(mocker: plugin.MockerFixture) -> None:
     """Returns a mock OpenAI response."""
     response = OpenAiResponse()
@@ -75,6 +74,7 @@ def test_anonymization_endpoint(
     assert response.json() == expected
 
 
+@pytest.mark.usefixtures("_mock_openai_response")
 def test_summarization_endpoint_new(
     mocker: plugin.MockerFixture,
     client: testclient.TestClient,
@@ -98,6 +98,7 @@ def test_summarization_endpoint_new(
     )
 
 
+@pytest.mark.usefixtures("_mock_openai_response")
 def test_summarization_endpoint_exists(
     mocker: pytest_mock.MockFixture,
     client: testclient.TestClient,

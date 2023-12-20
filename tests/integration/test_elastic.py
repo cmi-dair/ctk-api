@@ -3,7 +3,9 @@
 # attr-defined is disabled because elastic_client is not recognized as
 # a TestClass property.
 # pylint: disable=redefined-outer-name
+import fastapi
 import pytest
+from fastapi import status
 
 from ctk_api.microservices import elastic
 
@@ -39,20 +41,22 @@ class TestElastic:
             index=TEST_INDEX,
         )
 
-    def test_create(self, es_document: dict[str, str]) -> None:
+    @pytest.mark.asyncio()
+    async def test_create(self, es_document: dict[str, str]) -> None:
         """Tests creating a document in Elasticsearch."""
-        response = self.elastic_client.create(TEST_INDEX, es_document)
+        response = await self.elastic_client.create(TEST_INDEX, es_document)
 
         assert response["_index"] == TEST_INDEX
         assert response["result"] == "created"
         assert response["_id"]
 
-    def test_search(self, es_document: dict[str, str]) -> None:
+    @pytest.mark.asyncio()
+    async def test_search(self, es_document: dict[str, str]) -> None:
         """Tests searching for documents in Elasticsearch."""
-        self.elastic_client.create(TEST_INDEX, es_document)
+        await self.elastic_client.create(TEST_INDEX, es_document)
         self.elastic_client.client.indices.refresh()
 
-        response = self.elastic_client.search(TEST_INDEX, {"match_all": {}})
+        response = await self.elastic_client.search(TEST_INDEX, {"match_all": {}})
 
         assert response["hits"]["total"]["value"] == 1
         assert (
@@ -60,38 +64,69 @@ class TestElastic:
             == es_document["test_key"]
         )
 
-    def test_read(self, es_document: dict[str, str]) -> None:
+    @pytest.mark.asyncio()
+    async def test_read(self, es_document: dict[str, str]) -> None:
         """Tests reading a document from Elasticsearch."""
-        document_id = self.elastic_client.create(TEST_INDEX, es_document)["_id"]
+        document = await self.elastic_client.create(TEST_INDEX, es_document)
         self.elastic_client.client.indices.refresh()
 
-        response = self.elastic_client.read(TEST_INDEX, document_id)
+        response = await self.elastic_client.read(TEST_INDEX, document["_id"])
 
-        assert response["_id"] == document_id
+        assert response["_id"] == document["_id"]
         assert response["_source"]["test_key"] == es_document["test_key"]
 
-    def test_update(self, es_document: dict[str, str]) -> None:
+    @pytest.mark.asyncio()
+    async def test_read_not_found(self) -> None:
+        """Tests reading a document that doesn't exist from Elasticsearch."""
+        with pytest.raises(fastapi.HTTPException) as exc_info:
+            await self.elastic_client.read(TEST_INDEX, "not_found")
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.asyncio()
+    async def test_update(self, es_document: dict[str, str]) -> None:
         """Tests updating a document in Elasticsearch."""
-        document_id = self.elastic_client.create(TEST_INDEX, es_document)["_id"]
+        document = await self.elastic_client.create(TEST_INDEX, es_document)
         self.elastic_client.client.indices.refresh()
 
-        update_response = self.elastic_client.update(
+        update_response = await self.elastic_client.update(
             TEST_INDEX,
-            document_id,
+            document["_id"],
             {"test_key": "updated_value"},
         )
-        read_response = self.elastic_client.read(TEST_INDEX, document_id)
+        read_response = await self.elastic_client.read(TEST_INDEX, document["_id"])
 
-        assert update_response["_id"] == document_id
+        assert update_response["_id"] == document["_id"]
         assert read_response["_source"]["test_key"] == "updated_value"
 
-    def test_delete(self, es_document: dict[str, str]) -> None:
+    @pytest.mark.asyncio()
+    async def test_update_not_found(self) -> None:
+        """Tests updating a document that doesn't exist in Elasticsearch."""
+        with pytest.raises(fastapi.HTTPException) as exc_info:
+            await self.elastic_client.update(
+                TEST_INDEX,
+                "not_found",
+                {"test_key": "updated_value"},
+            )
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.asyncio()
+    async def test_delete(self, es_document: dict[str, str]) -> None:
         """Tests deleting a document from Elasticsearch."""
-        document_id = self.elastic_client.create(TEST_INDEX, es_document)["_id"]
+        document = await self.elastic_client.create(TEST_INDEX, es_document)
         self.elastic_client.client.indices.refresh()
 
-        self.elastic_client.delete(TEST_INDEX, document_id)
+        await self.elastic_client.delete(TEST_INDEX, document["_id"])
         self.elastic_client.client.indices.refresh()
-        response = self.elastic_client.search(TEST_INDEX, {"match_all": {}})
+        response = await self.elastic_client.search(TEST_INDEX, {"match_all": {}})
 
         assert response["hits"]["total"]["value"] == 0
+
+    @pytest.mark.asyncio()
+    async def test_delete_not_found(self) -> None:
+        """Tests deleting a document that doesn't exist from Elasticsearch."""
+        with pytest.raises(fastapi.HTTPException) as exc_info:
+            await self.elastic_client.delete(TEST_INDEX, "not_found")
+
+        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
