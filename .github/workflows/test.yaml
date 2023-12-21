@@ -2,7 +2,7 @@ name: Python Tests
 on:
   push:
     branches:
-      - main
+    - main
   pull_request:
 
 env:
@@ -21,57 +21,57 @@ jobs:
           discovery.type: single-node
           cluster.name: elasticsearch
           ELASTIC_PASSWORD: ${{ env.ELASTIC_PASSWORD }}
-          xpack.security.enabled: "false"
+          xpack.security.enabled: 'false'
         ports:
-          - 9200:9200
+        - 9200:9200
         options: >-
           --health-cmd "curl http://localhost:9200/_cluster/health"
           --health-interval 2s
           --health-timeout 5s
           --health-retries 50
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-          cache: poetry
-      - name: Install dependencies
-        run: |
-          poetry install
-          poetry run python -c "import pypandoc; pypandoc.download_pandoc()"
-      - name: Run tests
-        id: run-tests
-        run: >
-          poetry run pytest \
-            --junitxml=pytest.xml \
-            --cov-report=term-missing:skip-covered \
-            --cov-report=xml:coverage.xml \
-            --cov=src tests \
-            --log-level=DEBUG \
-            --verbose
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: poetry
+    - name: Install dependencies
+      run: |
+        poetry install
+        poetry run python -c "import pypandoc; pypandoc.download_pandoc()"
+    - name: Run tests
+      id: run-tests
+      run: >
+        poetry run pytest \
+          --junitxml=pytest.xml \
+          --cov-report=term-missing:skip-covered \
+          --cov-report=xml:coverage.xml \
+          --cov=src tests \
+          --log-level=DEBUG \
+          --verbose
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   ruff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: chartboost/ruff-action@v1
+    - uses: actions/checkout@v3
+    - uses: chartboost/ruff-action@v1
 
   mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-          cache: poetry
-      - run: |
-          poetry install
-          poetry run mypy .
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: poetry
+    - run: |
+        poetry install
+        poetry run mypy .
