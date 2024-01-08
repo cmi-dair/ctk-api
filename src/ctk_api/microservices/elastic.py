@@ -68,7 +68,7 @@ class ElasticClient:
                 logger.debug("Creating index %s.", index)
                 self.client.indices.create(index=index)
 
-    def create(
+    async def create(
         self,
         index: str,
         document: dict[str, Any],
@@ -102,7 +102,11 @@ class ElasticClient:
         document_id = uuid.uuid4().hex
         return self.client.create(id=document_id, index=index, document=document)
 
-    def read(self, index: str, document_id: str) -> elastic_transport.ObjectApiResponse:
+    async def read(
+        self,
+        index: str,
+        document_id: str,
+    ) -> elastic_transport.ObjectApiResponse:
         """Reads a document from the specified index.
 
         Args:
@@ -111,11 +115,21 @@ class ElasticClient:
 
         Returns:
             The response from Elasticsearch.
+
+        Raises:
+            fastapi.HTTPException: If the document is not found.
+
         """
         logger.debug("Reading document from Elasticsearch.")
-        return self.client.get(index=index, id=document_id)
+        try:
+            return self.client.get(index=index, id=document_id)
+        except elasticsearch.NotFoundError as exc_info:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The specified document does not exist.",
+            ) from exc_info
 
-    def update(
+    async def update(
         self,
         index: str,
         document_id: str,
@@ -132,17 +146,18 @@ class ElasticClient:
             The response from Elasticsearch.
         """
         logger.debug("Updating document in Elasticsearch.")
-        if "created_at" in document:
-            raise fastapi.HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Document should not already have a 'created_at' field.",
-            )
         document["modified_at"] = datetime.datetime.now(tz=datetime.UTC).strftime(
             "%Y-%m-%dT%H:%M:%S.%fZ",
         )
-        return self.client.update(index=index, id=document_id, doc=document)
+        try:
+            return self.client.update(index=index, id=document_id, doc=document)
+        except elasticsearch.NotFoundError as exc_info:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The specified document does not exist.",
+            ) from exc_info
 
-    def delete(self, index: str, document_id: str) -> None:
+    async def delete(self, index: str, document_id: str) -> None:
         """Deletes a document from the specified index.
 
         Args:
@@ -150,9 +165,15 @@ class ElasticClient:
             document_id: The ID of the document to delete.
         """
         logger.debug("Deleting document from Elasticsearch.")
-        self.client.delete(index=index, id=document_id)
+        try:
+            self.client.delete(index=index, id=document_id)
+        except elasticsearch.NotFoundError as exc_info:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The specified document does not exist.",
+            ) from exc_info
 
-    def search(
+    async def search(
         self,
         index: str,
         query: dict[str, Any],

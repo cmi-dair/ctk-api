@@ -21,6 +21,7 @@ LOGGER_NAME = settings.LOGGER_NAME
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 OPENAI_CHAT_COMPLETION_MODEL = settings.OPENAI_CHAT_COMPLETION_MODEL
 OPENAI_CHAT_COMPLETION_PROMPT_FILE = settings.OPENAI_CHAT_COMPLETION_PROMPT_FILE
+ELASTIC_SUMMARIZATION_INDEX = settings.ELASTIC_SUMMARIZATION_INDEX
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -50,7 +51,7 @@ def anonymize_report(docx_file: fastapi.UploadFile) -> str:
     return "\n".join([p.text for p in anonymized_paragraphs])
 
 
-def summarize_report(
+async def summarize_report(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient,
     background_tasks: fastapi.BackgroundTasks,
@@ -69,7 +70,7 @@ def summarize_report(
         str: The summarized file.
     """
     logger.info("Checking if request was made before.")
-    existing_document = _check_for_existing_document(report, elastic_client)
+    existing_document = await _check_for_existing_document(report, elastic_client)
 
     if existing_document and "summary" in existing_document:
         return _summmary_as_docx_response(
@@ -79,16 +80,16 @@ def summarize_report(
         )
 
     logger.debug("Creating request document.")
-    document = elastic_client.create(
-        index="summarization",
+    document = await elastic_client.create(
+        index=ELASTIC_SUMMARIZATION_INDEX,
         document={"report": report.text},
     )
 
+    system_prompt = get_prompt("system", "summarize_clinical_report")
     logger.debug(
         "Sending report %s to OpenAI.",
         document["_id"],
     )
-    system_prompt = get_prompt("system", "summarize_clinical_report")
 
     client = openai.OpenAI(api_key=OPENAI_API_KEY.get_secret_value())
     response = client.chat.completions.create(
@@ -104,8 +105,8 @@ def summarize_report(
         document["_id"],
     )
     response_text = response.choices[0].message.content
-    elastic_client.update(
-        index="summarization",
+    await elastic_client.update(
+        index=ELASTIC_SUMMARIZATION_INDEX,
         document_id=document["_id"],
         document={"summary": response_text},
     )
@@ -140,7 +141,7 @@ def get_prompt(category: Literal["system", "user"], name: str) -> str:
     return prompts[category][name]
 
 
-def _check_for_existing_document(
+async def _check_for_existing_document(
     report: schemas.Report,
     elastic_client: elastic.ElasticClient,
 ) -> dict[str, Any] | None:
@@ -154,7 +155,10 @@ def _check_for_existing_document(
         dict[str, Any] | None: The existing document if it exists, else None.
     """
     query = {"match_phrase": {"report": report.text}}
-    existing_document = elastic_client.search(index="summarization", query=query)
+    existing_document = await elastic_client.search(
+        index=ELASTIC_SUMMARIZATION_INDEX,
+        query=query,
+    )
 
     if existing_document["hits"]["total"]["value"] == 0:
         logger.debug("Request was not made before.")

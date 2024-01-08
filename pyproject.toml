@@ -20,6 +20,7 @@ elasticsearch = "^8.11.1"
 elastic-transport = "^8.11.0"
 pypandoc = "^1.12"
 pyyaml = "^6.0.1"
+email-validator = "^2.1.0.post1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
@@ -31,6 +32,7 @@ pytest-dotenv = "^0.5.2"
 pytest-mock = "^3.12.0"
 ruff = "^0.1.7"
 types-pyyaml = "^6.0.12.12"
+pytest-asyncio = "^0.23.2"
 
 [tool.poetry.group.docs.dependencies]
 pdoc = "^14.2.0"

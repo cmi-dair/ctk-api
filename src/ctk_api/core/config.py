@@ -51,6 +51,14 @@ class Settings(pydantic_settings.BaseSettings):  # type: ignore[valid-type, misc
         ...,
         json_schema_extra={"env": "ELASTIC_PASSWORD"},
     )
+    ELASTIC_DIAGNOSES_INDEX: str = pydantic.Field(
+        "diagnoses",
+        json_schema_extra={"env": "ELASTIC_DIAGNOSES_INDEX"},
+    )
+    ELASTIC_SUMMARIZATION_INDEX: str = pydantic.Field(
+        "summarization",
+        json_schema_extra={"env": "ELASTIC_SUMMARIZATION_INDEX"},
+    )
 
     @pydantic.field_validator("ENVIRONMENT")
     def validate_environment(

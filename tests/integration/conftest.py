@@ -15,7 +15,11 @@ class Endpoints(str, enum.Enum):
 
     ANONYMIZE_REPORT = f"{API_ROOT}/summarization/anonymize_report"
     SUMMARIZE_REPORT = f"{API_ROOT}/summarization/summarize_report"
-    DIAGNOSES = f"{API_ROOT}/diagnoses"
+    GET_DIAGNOSES = f"{API_ROOT}/diagnoses"
+    POST_DIAGNOSIS_ROOT = f"{API_ROOT}/diagnoses"  # noqa: PIE796
+    POST_DIAGNOSIS_NODE = f"{API_ROOT}/diagnoses/{{diagnosis_id}}"
+    PATCH_DIAGNOSIS = f"{API_ROOT}/diagnoses/{{diagnosis_id}}"  # noqa: PIE796
+    DELETE_DIAGNOSIS = f"{API_ROOT}/diagnoses/{{diagnosis_id}}"  # noqa: PIE796
 
 
 @pytest.fixture()
@@ -27,7 +31,4 @@ def endpoints() -> type[Endpoints]:
 @pytest.fixture()
 def client(mocker: plugin.MockerFixture) -> testclient.TestClient:
     """Returns a test client for the API."""
-    mocker.patch("ctk_api.microservices.elastic.ElasticClient._create_default_indices")
-    mocker.patch("ctk_api.microservices.elastic.ElasticClient.create")
-    mocker.patch("ctk_api.microservices.elastic.ElasticClient.update")
     return testclient.TestClient(main.app)

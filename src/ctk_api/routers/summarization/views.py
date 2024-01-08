@@ -13,7 +13,7 @@ LOGGER_NAME = settings.LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
-router = fastapi.APIRouter(prefix="/summarization", tags=["Summarization"])
+router = fastapi.APIRouter(prefix="/summarization", tags=["summarization"])
 
 
 @router.post("/anonymize_report")
@@ -28,8 +28,10 @@ async def anonymize_report(
     Returns:
         str: The anonymized file.
     """
-    logger.info("Endpoint: /summarization/anonymize_report")
-    return controller.anonymize_report(docx_file)
+    logger.debug("Anonymizing report.")
+    response = controller.anonymize_report(docx_file)
+    logger.debug("Anonymized report.")
+    return response
 
 
 @router.post("/summarize_report")
@@ -48,5 +50,11 @@ async def summarize_report(
     Returns:
         str: The summarized file.
     """
-    logger.info("Endpoint: /summarization/summarize_report")
-    return controller.summarize_report(report, elastic_client, background_tasks)
+    logger.debug("Summarizing report.")
+    response = await controller.summarize_report(
+        report,
+        elastic_client,
+        background_tasks,
+    )
+    logger.debug("Summarized report.")
+    return response

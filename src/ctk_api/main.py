@@ -20,7 +20,17 @@ api_router.include_router(diagnoses_views.router)
 api_router.include_router(summarization_views.router)
 
 logger.info("Starting API.")
-app = fastapi.FastAPI()
+app = fastapi.FastAPI(
+    title="Clinician Toolkit API",
+    description="API for the Clinician Toolkit.",
+    version="0.1.0",
+    contact={
+        "name": "Center for Data Analytics, Innovation, and Rigor",
+        "url": "https://github.com/cmi-dair/",
+        "email": "dair@childmind.org",
+    },
+    swagger_ui_parameters={"operationsSorter": "method"},
+)
 app.include_router(api_router)
 
 logger.info("Adding middleware.")
